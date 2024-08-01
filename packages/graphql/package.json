@@ -13,6 +13,7 @@
     "@types/graphql": "^14.5.0",
     "@types/jest": "^25.2.3",
     "@types/supertest": "^2.0.9",
+    "@types/ws": "^8.18.1",
     "jest": "^26.0.1",
     "prettier": "^2.0.5",
     "supertest": "^4.0.2",
@@ -25,12 +26,15 @@
     "test": "jest --verbose --runInBand --forceExit"
   },
   "dependencies": {
+    "@graphql-tools/schema": "^8.5.1",
     "@tensei/common": "^0.11.5",
-    "apollo-server-express": "^2.19.0",
+    "apollo-server-express": "^3.13.0",
     "dataloader": "^2.0.0",
     "graphql": "^15.5.0",
     "graphql-parse-resolve-info": "^4.9.0",
-    "graphql-type-json": "^0.3.2"
+    "graphql-subscriptions": "^2.0.0",
+    "graphql-type-json": "^0.3.2",
+    "graphql-ws": "^5.14.3"
   },
   "config": {
     "commitizen": {

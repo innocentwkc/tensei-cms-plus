@@ -7,7 +7,7 @@
   "scripts": {
     "test": "wsrun -p '@tensei/tests' -c test",
     "test:watch": "wsrun -p '@tensei/tests' -c test:watch",
-    "build": "yarn clean && yarn lerna run build",
+    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider yarn clean && cross-env NODE_OPTIONS=--openssl-legacy-provider yarn lerna run build",
     "clean": "node scripts/clean.js",
     "dev": "wsrun -p '@tensei/*' -c dev",
     "prettier": "wsrun -p '@tensei/*' -c prettier",
@@ -15,7 +15,7 @@
     "commit": "yarn git-cz",
     "setup": "yarn && yarn build && cd examples/blog && yarn && cd ../typescript && yarn",
     "example": "wsrun -p '@examples/typescript' -c example:dev",
-    "cms:dev": "wsrun -p '@tensei/cms' -c dev-client",
+    "cms:dev": "cross-env NODE_OPTIONS='--openssl-legacy-provider' wsrun -p '@tensei/cms' -c dev-client",
     "cms:dev:server": "wsrun -p '@tensei/cms' -c dev",
     "cms:build": "wsrun -p '@tensei/cms' -c build",
     "example:dev:server": "wsrun -p '@examples/typescript' -c example:dev:server"
@@ -52,6 +52,9 @@
     "rimraf": "^3.0.2"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
+    "esbuild": "^0.25.2",
+    "postcss": "^8.4.0",
     "wsrun": "^5.2.4"
   }
 }

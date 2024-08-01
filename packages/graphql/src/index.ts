@@ -2,17 +2,16 @@ import { applyMiddleware } from 'graphql-middleware'
 import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json'
 import {
   gql,
-  PubSub,
-  withFilter,
   ApolloServer,
   ForbiddenError,
   UserInputError,
   ValidationError,
-  AuthenticationError,
-  makeExecutableSchema,
-  GetMiddlewareOptions,
-  Config as ApolloConfig
+  AuthenticationError
 } from 'apollo-server-express'
+import { PubSub, withFilter } from 'graphql-subscriptions'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { WebSocketServer } from 'ws'
+import { useServer } from 'graphql-ws/lib/use/ws'
 import {
   Utils,
   plugin,
@@ -22,6 +21,7 @@ import {
   GraphQlQueryContract
 } from '@tensei/common'
 import { ReferenceType } from '@mikro-orm/core'
+import { OmittedApolloConfig, GetMiddlewareOptions } from './types'
 
 import {
   getResolvers,
@@ -36,8 +36,6 @@ import {
   defineUpdateSubscriptionsForResource
 } from './Subscriptions'
 import { HTML } from './graphiql'
-
-type OmittedApolloConfig = Omit<ApolloConfig, 'typeDefs' | 'resolvers'>
 
 class Graphql {
   private appolloConfig: OmittedApolloConfig = {}
@@ -704,7 +702,8 @@ input IdWhereQuery {
           app,
           graphQlMiddleware,
           serverUrl,
-          resources
+          resources,
+          server
         } = config
 
         const typeDefs = [
@@ -868,9 +867,7 @@ input IdWhereQuery {
               manager,
               prepare
             }
-          },
-          uploads: false,
-          playground: false
+          }
         })
 
         const path = `/${this.getMiddlewareOptions.path || 'graphql'}`
@@ -879,13 +876,40 @@ input IdWhereQuery {
           return response.send(HTML(path))
         })
 
+        await graphQlServer.start()
+
         graphQlServer.applyMiddleware({
           app,
           ...this.getMiddlewareOptions
         })
 
         if (this.subscriptionsEnabled) {
-          graphQlServer.installSubscriptionHandlers(config.server)
+          // Create WebSocket server
+          const wsServer = new WebSocketServer({
+            server,
+            path: '/graphql'
+          })
+
+          // Set up WebSocket server
+          useServer(
+            {
+              schema,
+              context: async (ctx: any) => {
+                const { orm, resources, db } = currentCtx()
+                const manager = orm?.em?.fork()!
+
+                return {
+                  ...ctx,
+                  ...config,
+                  pubsub: this.pubsub,
+                  db,
+                  repositories: db,
+                  manager
+                }
+              }
+            },
+            wsServer
+          )
         }
       })
   }
